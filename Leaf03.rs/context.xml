@@ -1,0 +1,6 @@
+<context id="Leaf03" class="leaf03.Leaf03Context" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://repast.org/scenario/context">
+  	<projection type ="continuous space" id ="space"/>
+	<projection type ="grid" id ="grid"/>
+	<projection id="COD" type="value layer"/>
+	<projection id="surf" type="value layer"/>
+</context>
