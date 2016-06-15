@@ -1,24 +1,18 @@
 package leaf03;
 
-import java.util.ArrayList;
-
 import repast.simphony.context.Context;
 import repast.simphony.engine.schedule.ScheduledMethod;
-import repast.simphony.query.space.grid.GridWithin;
 import repast.simphony.random.RandomHelper;
-import repast.simphony.space.Dimensions;
-import repast.simphony.space.continuous.ContinuousSpace ;
 import repast.simphony.space.continuous.NdPoint;
-import repast.simphony.space.grid.Grid;
 import repast.simphony.space.grid.GridPoint;
 import repast.simphony.util.ContextUtils;
-import repast.simphony.valueLayer.BufferedGridValueLayer;
+import repast.simphony.valueLayer.GridValueLayer;
 import leaf03.PhysicalAgent;
 
 public class Bacteria extends PhysicalAgent{
 
-    private BufferedGridValueLayer COD;
-    private BufferedGridValueLayer surf;
+    private GridValueLayer COD;
+    private GridValueLayer surf;
 	private double kappa;
 	private double g;
 	
@@ -26,8 +20,8 @@ public class Bacteria extends PhysicalAgent{
 	public Bacteria(Context<PhysicalAgent> context, double mass, double g, double kappa) {
 		
 		super(context, mass);
-	    this.COD = (BufferedGridValueLayer) context.getValueLayer("COD");
-	    this.surf = (BufferedGridValueLayer) context.getValueLayer("surf");
+	    this.COD = (GridValueLayer) context.getValueLayer("COD");
+	    this.surf = (GridValueLayer) context.getValueLayer("surf");
 		this.g = g;
 	    this.kappa = kappa;
 	    
@@ -60,7 +54,7 @@ public class Bacteria extends PhysicalAgent{
 	    GridPoint pt = grid.getLocation(this);
 	    double surfOutput = 0.05;
 	    //double temp = 
-	    surf.set(surfOutput + surf.get(pt.getX(), pt.getY()), pt.getX(), pt.getY());
+	    //surf.set(surfOutput + surf.get(pt.getX(), pt.getY()), pt.getX(), pt.getY());
 	}
 	
     

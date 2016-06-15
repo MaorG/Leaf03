@@ -15,6 +15,7 @@ import repast.simphony.space.grid.GridBuilderParameters;
 import repast.simphony.space.grid.SimpleGridAdder;
 import repast.simphony.space.grid.WrapAroundBorders;
 import repast.simphony.valueLayer.BufferedGridValueLayer;
+import repast.simphony.valueLayer.GridValueLayer;
 
 public class Leaf03ContextBuilder implements ContextBuilder<PhysicalAgent> {
 
@@ -24,12 +25,12 @@ public class Leaf03ContextBuilder implements ContextBuilder<PhysicalAgent> {
 		context.setId("Leaf03");
 		
 		// get g, kappa from file
-		double g = 2.0;
-		double kappa = 100.0;
+		double g = 0.10;
+		double kappa = 1.0;
 		
 		//
-		double h = 500;
-		double w = 500;
+		double h = 100;
+		double w = 100;
 			
 		
 		ContinuousSpaceFactory spaceFactory = 
@@ -46,7 +47,8 @@ public class Leaf03ContextBuilder implements ContextBuilder<PhysicalAgent> {
 				true, (int)h, (int)w));
 		
 		
-	    BufferedGridValueLayer COD = new BufferedGridValueLayer("COD", 1.0, true, new WrapAroundBorders(), new int[]{(int)h, (int)w}, new int[]{0,0});
+		GridValueLayer COD = new GridValueLayer("COD", 1.0, true, new WrapAroundBorders(), new int[]{(int)h, (int)w}, new int[]{0,0});
+		GridValueLayer surf = new GridValueLayer("surf", 1.0, true, new WrapAroundBorders(), new int[]{(int)h, (int)w}, new int[]{0,0});
 	    
 		int width = (int) COD.getDimensions().getWidth();
 		int height = (int) COD.getDimensions().getHeight();
@@ -55,18 +57,20 @@ public class Leaf03ContextBuilder implements ContextBuilder<PhysicalAgent> {
 				if (x > width/2){
 					COD.set(0.0, x, y);
 				}
+				if (true) {
+					surf.set((double)y/ (double)height, x, y);
+				}
 			}
 		}
 		
 		//((Leaf03Context)context).addValueLayerAndDiffuser(COD, 1.0, 1.0);	
 
-		context.addValueLayer(COD);
-		
-	    BufferedGridValueLayer surf = new BufferedGridValueLayer("surf", 0.0, true, new WrapAroundBorders(), new int[]{(int)h, (int)w}, new int[]{0,0});
-		((Leaf03Context)context).addValueLayerAndDiffuser(surf, 0.95, 1.0);	
+		((Leaf03Context)context).addValueLayerAndDiffuser(surf, 1.0, 0.0);	
+		((Leaf03Context)context).addValueLayerAndDiffuser(COD, 1.0, "surf");	
+//		((Leaf03Context)context).addValueLayerAndDiffuser(surf, 0.95, 1.0);	
 
 		
-		int bactCount = 5;
+		int bactCount = 50;
 		
 		for (int i = 0; i < bactCount; i++) {
 			context.add(new Bacteria(context, 1.0, g, kappa));

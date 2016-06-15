@@ -6,23 +6,26 @@ import repast.simphony.valueLayer.ValueLayerDiffuser;
 
 public class ValueLayerDiffuserHeterogeneous extends ValueLayerDiffuser {
 	private IGridValueLayer diffusionLayer;
-	
-	  protected transient Object computedVals;
 
-	  private transient WrapAroundBorders borders;
+	private transient WrapAroundBorders borders;
 
-	public ValueLayerDiffuserHeterogeneous(IGridValueLayer valueLayer, IGridValueLayer diffusionLayer, double evaporationConst,
-			double diffusionConst, boolean toroidal) {
-		super();
+	public ValueLayerDiffuserHeterogeneous(IGridValueLayer valueLayer, double evaporationConst,
+			IGridValueLayer diffusionLayer, boolean toroidal) {
+		//super(valueLayer);
 		this.evaporationConst = evaporationConst;
-		this.diffusionConst = diffusionConst;
+		this.diffusionConst = 0;
 		this.toroidal = toroidal;
 
 		setValueLayer(valueLayer);
 		setDiffusionLayer(diffusionLayer);
 	}
 
-	private void setDiffusionLayer(IGridValueLayer diffusionLayer) {
+	public ValueLayerDiffuserHeterogeneous(IGridValueLayer valueLayer, double evaporationConst,
+			double diffusionConst, boolean toroidal) {
+		super(valueLayer, evaporationConst, diffusionConst, toroidal);
+	}
+
+	public void setDiffusionLayer(IGridValueLayer diffusionLayer) {
 		// exceptions?
 
 		this.diffusionLayer = diffusionLayer;
@@ -46,7 +49,7 @@ public class ValueLayerDiffuserHeterogeneous extends ValueLayerDiffuser {
 
 					double oldVal = getValue(x, y);
 
-					
+
 					double duE = getValue(x + 1, y) - oldVal;
 					double duN = getValue(x, y + 1) - oldVal;
 					double duW = getValue(x - 1, y) - oldVal;
@@ -60,8 +63,8 @@ public class ValueLayerDiffuserHeterogeneous extends ValueLayerDiffuser {
 					double duNW = getValue(x - 1, y + 1) - oldVal;
 					double duSW = getValue(x - 1, y - 1) - oldVal;
 					double duSE = getValue(x + 1, y - 1) - oldVal;
-					
-					double localDiff = getValue(x, y);
+
+					double localDiff = getDiffValue(x, y);
 					double diffE = 0.5 * (getDiffValue(x + 1, y) + localDiff);
 					double diffN = 0.5 * (getDiffValue(x, y + 1) + localDiff);
 					double diffW = 0.5 * (getDiffValue(x - 1, y) + localDiff);
@@ -75,7 +78,7 @@ public class ValueLayerDiffuserHeterogeneous extends ValueLayerDiffuser {
 					double diffNW = 0.5 * (getDiffValue(x - 1, y + 1) + localDiff);
 					double diffSW = 0.5 * (getDiffValue(x - 1, y - 1) + localDiff);
 					double diffSE = 0.5 * (getDiffValue(x + 1, y - 1) + localDiff);
-					
+
 					// compute the weighted avg, those directly north/south/east/west
 					// are given 4 times the weight of those on a diagonal
 					double weightedAvgDeltaDiff = ((
@@ -85,11 +88,11 @@ public class ValueLayerDiffuserHeterogeneous extends ValueLayerDiffuser {
 							duS * diffS
 							) * 4 
 							+ (
-							duNE * diffNE + 
-							duNW * diffNW + 
-							duSW * diffSW + 
-							duSE * diffSE
-							)) / 20.0;
+									duNE * diffNE + 
+									duNW * diffNW + 
+									duSW * diffSW + 
+									duSE * diffSE
+									)) / 20.0;
 
 					// apply the diffusion and evaporation constants
 					double newVal = (oldVal + weightedAvgDeltaDiff) * evaporationConst;
@@ -105,19 +108,50 @@ public class ValueLayerDiffuserHeterogeneous extends ValueLayerDiffuser {
 			computedVals = newVals;
 		}
 	}
-	
-	  protected double getDiffValue(double... coords) {
-		    if (toroidal) {
-		      if (borders == null) {
-		        borders = new WrapAroundBorders();
-		        borders.init(valueLayer.getDimensions());
-		      }
-		      // use the wrap around borders class to set this up
-		      borders.transform(coords, coords);
-		    } else if (inBounds(coords) == 0.0) {
-		      return 0.0;
-		    }
-		    return diffusionLayer.get(coords);
-		  }
+
+
+	@Override
+	public void diffuse() {
+		computeVals();
+		int size = valueLayer.getDimensions().size();
+
+		if (size == 1) {
+			double[] newVals = (double[]) computedVals;
+			for (int x = 0; x < newVals.length; x++) {
+				valueLayer.set(newVals[x], x);
+			}
+		} else if (size == 2) {
+			double[][] newVals = (double[][]) computedVals;
+			for (int x = 0; x < newVals.length; x++) {
+				for (int y = 0; y < newVals[0].length; y++) {
+					valueLayer.set(newVals[x][y], x, y);
+				}
+			}
+		} else {
+			double[][][] newVals = (double[][][]) computedVals;
+			for (int x = 0; x < newVals[0].length; x++) {
+				for (int y = 0; y < newVals[0][0].length; y++) {
+					for (int z = 0; z < newVals.length; z++) {
+						valueLayer.set(newVals[x][y][z], x, y, z);
+					}
+				}
+			}
+		}
+	}
+
+
+	protected double getDiffValue(double... coords) {
+		if (toroidal) {
+			if (borders == null) {
+				borders = new WrapAroundBorders();
+				borders.init(valueLayer.getDimensions());
+			}
+			// use the wrap around borders class to set this up
+			borders.transform(coords, coords);
+		} else if (inBounds(coords) == 0.0) {
+			return 0.0;
+		}
+		return diffusionLayer.get(coords);
+	}
 
 }
