@@ -2,5 +2,7 @@
   	<projection type ="continuous space" id ="space"/>
 	<projection type ="grid" id ="grid"/>
 	<projection id="COD" type="value layer"/>
-	<projection id="surf" type="value layer"/>
+	<projection id="surfactant" type="value layer"/><projection
+		type="value layer" id="waterLevel">
+</projection>
 </context>

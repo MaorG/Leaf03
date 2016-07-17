@@ -32,7 +32,9 @@ public class BacteriaStyle implements StyleOGL2D<Bacteria> {
 	 * .Object)
 	 */
 	public Color getBorderColor(Bacteria object) {
+//		return Color.black;
 		return null;
+
 	}
 
 	/*
@@ -87,7 +89,7 @@ public class BacteriaStyle implements StyleOGL2D<Bacteria> {
 	 */
 	public VSpatial getVSpatial(Bacteria object, VSpatial spatial) {
 		if (spatial == null) {
-			VSpatial vs = shapeFactory.createCircle(10.0f * (float)((Bacteria)object).radius, 16); 
+			VSpatial vs = shapeFactory.createCircle((float)((Bacteria)object).radius, 16); 
 			return vs;
 		}
 		return spatial;

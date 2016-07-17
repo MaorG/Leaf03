@@ -21,7 +21,7 @@ public class CODStyle implements ValueLayerStyleOGL {
 	   * @see repast.simphony.visualizationOGL2D.ValueLayerStyleOGL#getCellSize()
 	   */
 	  public float getCellSize() {
-	    return 15;
+	    return 10;
 	  }
 
 	  /* (non-Javadoc)
@@ -29,7 +29,7 @@ public class CODStyle implements ValueLayerStyleOGL {
 	   */
 	  public Color getColor(double... coordinates) {
 	    double val = layer.get(coordinates);
-	    Color color = colorMap.get((int)(val * 256));
+	    Color color = colorMap.get((int)(val * 20 * 256));
 	    if (color == null) {
 	      //System.out.printf("Trying to get color for %d%n", (int)(val * 256));
 	      color = Color.RED;

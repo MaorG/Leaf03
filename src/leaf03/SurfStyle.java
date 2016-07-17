@@ -21,7 +21,7 @@ public class SurfStyle implements ValueLayerStyleOGL {
 	 * @see repast.simphony.visualizationOGL2D.ValueLayerStyleOGL#getCellSize()
 	 */
 	public float getCellSize() {
-		return 15;
+		return 10;
 	}
 
 	/* (non-Javadoc)

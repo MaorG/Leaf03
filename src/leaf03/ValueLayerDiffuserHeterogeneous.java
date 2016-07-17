@@ -2,16 +2,19 @@ package leaf03;
 
 import repast.simphony.space.continuous.WrapAroundBorders;
 import repast.simphony.valueLayer.IGridValueLayer;
-import repast.simphony.valueLayer.ValueLayerDiffuser;
+import expr.*;
 
-public class ValueLayerDiffuserHeterogeneous extends ValueLayerDiffuser {
-	private IGridValueLayer diffusionLayer;
+public class ValueLayerDiffuserHeterogeneous extends CustumValueLayerDiffuser {
+	protected IGridValueLayer diffusionLayer;
+	protected String diffusionExpressionStr;
+	protected Expr diffusionExpression;
 
-	private transient WrapAroundBorders borders;
 
-	public ValueLayerDiffuserHeterogeneous(IGridValueLayer valueLayer, double evaporationConst,
-			IGridValueLayer diffusionLayer, boolean toroidal) {
-		//super(valueLayer);
+	protected transient WrapAroundBorders borders;
+
+	public ValueLayerDiffuserHeterogeneous(IGridValueLayer valueLayer,
+			double evaporationConst, IGridValueLayer diffusionLayer,
+			boolean toroidal) {
 		this.evaporationConst = evaporationConst;
 		this.diffusionConst = 0;
 		this.toroidal = toroidal;
@@ -20,9 +23,20 @@ public class ValueLayerDiffuserHeterogeneous extends ValueLayerDiffuser {
 		setDiffusionLayer(diffusionLayer);
 	}
 
-	public ValueLayerDiffuserHeterogeneous(IGridValueLayer valueLayer, double evaporationConst,
-			double diffusionConst, boolean toroidal) {
+	public ValueLayerDiffuserHeterogeneous(IGridValueLayer valueLayer,
+			double evaporationConst, double diffusionConst, boolean toroidal) {
 		super(valueLayer, evaporationConst, diffusionConst, toroidal);
+	}
+
+	public void setDiffusionExpression(String expression) {
+		this.diffusionExpressionStr = expression;
+		try {
+			diffusionExpression = Parser.parse(diffusionExpressionStr);
+		} catch (SyntaxException e) {
+			System.err.println(e.explain());
+			e.printStackTrace();
+			return;
+		}
 	}
 
 	public void setDiffusionLayer(IGridValueLayer diffusionLayer) {
@@ -30,6 +44,29 @@ public class ValueLayerDiffuserHeterogeneous extends ValueLayerDiffuser {
 
 		this.diffusionLayer = diffusionLayer;
 
+	}
+
+	@Override
+	public double determineMaxStableDt() {
+
+		// deltaT <= 0.5 * deltaX^2 / alpha
+		
+		int width = (int) diffusionLayer.getDimensions().getWidth();
+		int height = (int) diffusionLayer.getDimensions().getHeight();
+
+		
+		double maxDiffValue = 0;
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				if (getDiffValue(x, y) > maxDiffValue) {
+					maxDiffValue = getDiffValue(x, y);
+				}
+			}
+		}
+		
+		dt = 0.5 * dx * dx / maxDiffValue;
+		return dt;
+		
 	}
 
 	@Override
@@ -41,74 +78,57 @@ public class ValueLayerDiffuserHeterogeneous extends ValueLayerDiffuser {
 		if (size == 2) {
 			int width = (int) valueLayer.getDimensions().getWidth();
 			int height = (int) valueLayer.getDimensions().getHeight();
+
+			double[][] oldVals = new double[width + 2][height + 2];
 			double[][] newVals = new double[width][height];
+			double[][] diffVals = new double[width + 2][height + 2];
+
+			for (int y = -1; y < height + 1; y++) {
+				for (int x = -1; x < width + 1; x++) {
+					oldVals[x + 1][y + 1] = getValue(x, y);
+				}
+			}
+
+			for (int y = -1; y < height + 1; y++) {
+				for (int x = -1; x < width + 1; x++) {
+					diffVals[x + 1][y + 1] = getDiffValue(x, y);
+				}
+			}
+
 			for (int y = 0; y < height; y++) {
 				for (int x = 0; x < width; x++) {
-					// these are the neighbors that are directly north/south/east/west to
-					// the given cell 4 times those that are diagonal to the cell
-
 					double oldVal = getValue(x, y);
 
+					double duE = oldVals[x + 2][y + 1] - oldVal;
+					double duN = oldVals[x + 1][y + 2] - oldVal;
+					double duW = oldVals[x][y + 1] - oldVal;
+					double duS = oldVals[x + 1][y] - oldVal;
 
-					double duE = getValue(x + 1, y) - oldVal;
-					double duN = getValue(x, y + 1) - oldVal;
-					double duW = getValue(x - 1, y) - oldVal;
-					double duS = getValue(x, y - 1) - oldVal;
+					double localDiff = diffVals[x + 1][y + 1];
+					double diffE = 0.5 * (diffVals[x + 2][y + 1] + localDiff);
+					double diffN = 0.5 * (diffVals[x + 1][y + 2] + localDiff);
+					double diffW = 0.5 * (diffVals[x][y + 1] + localDiff);
+					double diffS = 0.5 * (diffVals[x + 1][y] + localDiff);
 
-					// these are the neighbors that are diagonal to the given cell
-					// they are only weighted 1/4 of the ones that are
+					// compute the weighted avg, those directly
 					// north/south/east/west
-					// of the cell
-					double duNE = getValue(x + 1, y + 1) - oldVal;
-					double duNW = getValue(x - 1, y + 1) - oldVal;
-					double duSW = getValue(x - 1, y - 1) - oldVal;
-					double duSE = getValue(x + 1, y - 1) - oldVal;
-
-					double localDiff = getDiffValue(x, y);
-					double diffE = 0.5 * (getDiffValue(x + 1, y) + localDiff);
-					double diffN = 0.5 * (getDiffValue(x, y + 1) + localDiff);
-					double diffW = 0.5 * (getDiffValue(x - 1, y) + localDiff);
-					double diffS = 0.5 * (getDiffValue(x, y - 1) + localDiff);
-
-					// these are the neighbors that are diagonal to the given cell
-					// they are only weighted 1/4 of the ones that are
-					// north/south/east/west
-					// of the cell
-					double diffNE = 0.5 * (getDiffValue(x + 1, y + 1) + localDiff);
-					double diffNW = 0.5 * (getDiffValue(x - 1, y + 1) + localDiff);
-					double diffSW = 0.5 * (getDiffValue(x - 1, y - 1) + localDiff);
-					double diffSE = 0.5 * (getDiffValue(x + 1, y - 1) + localDiff);
-
-					// compute the weighted avg, those directly north/south/east/west
 					// are given 4 times the weight of those on a diagonal
-					double weightedAvgDeltaDiff = ((
-							duE * diffE + 
-							duW * diffW + 
-							duN * diffN +
-							duS * diffS
-							) * 4 
-							+ (
-									duNE * diffNE + 
-									duNW * diffNW + 
-									duSW * diffSW + 
-									duSE * diffSE
-									)) / 20.0;
+					double weightedAvgDeltaDiff = (duE * diffE + duW * diffW
+							+ duN * diffN + duS * diffS) * 0.25;
 
 					// apply the diffusion and evaporation constants
-					double newVal = (oldVal + weightedAvgDeltaDiff) * evaporationConst;
+					double newVal = oldVal +  (dt / (dx*dx)) * weightedAvgDeltaDiff;
+					
+					newVal = newVal * evaporationConst;
 
 					// bring the value into [min, max]
 					newVals[x][y] = constrainByMinMax(newVal);
 
-					// System.out.println("x: " + x + " y: " + y + "val: " + oldVal +
-					// " delta: "
-					// + delta + " d: " + newVals[x][y]);
 				}
 			}
 			computedVals = newVals;
 		}
 	}
-
 
 	@Override
 	public void diffuse() {
@@ -139,7 +159,6 @@ public class ValueLayerDiffuserHeterogeneous extends ValueLayerDiffuser {
 		}
 	}
 
-
 	protected double getDiffValue(double... coords) {
 		if (toroidal) {
 			if (borders == null) {
@@ -151,7 +170,9 @@ public class ValueLayerDiffuserHeterogeneous extends ValueLayerDiffuser {
 		} else if (inBounds(coords) == 0.0) {
 			return 0.0;
 		}
-		return diffusionLayer.get(coords);
+		Variable X = Variable.make("X");
+		X.setValue(diffusionLayer.get(coords));
+		return diffusionExpression.value();
 	}
 
 }

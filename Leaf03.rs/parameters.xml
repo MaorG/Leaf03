@@ -2,5 +2,7 @@
 <parameters>
 
 	<parameter name="randomSeed" displayName="Default Random Seed" type="int" defaultValue="__NULL__" />
+	<parameter name="xmlPath" displayName="xml path" type="string" defaultValue="C:\simulators\RepastSimphony-2.3.1\Maor\protocols\1\protocol.xml" />
+	<parameter name="outputPath" displayName="output path" type="string" defaultValue="C:\simulators\RepastSimphony-2.3.1\Maor\Leaf03\output\1\" />
 
 </parameters>

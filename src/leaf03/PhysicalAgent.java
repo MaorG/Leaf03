@@ -1,6 +1,9 @@
 package leaf03;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import repast.simphony.context.Context;
 import repast.simphony.query.space.grid.GridWithin;
@@ -9,6 +12,21 @@ import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.continuous.NdPoint;
 import repast.simphony.space.grid.Grid;
 import repast.simphony.util.ContextUtils;
+
+
+
+
+
+/// TODO perhaps should be wrapped into parser class
+import org.w3c.dom.*;
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.*;
+
+import java.io.*;
+
+import leaf03.utils.ParserUtils;
+
 
 public class PhysicalAgent {
 	
@@ -20,10 +38,39 @@ public class PhysicalAgent {
 	protected double fX;
 	protected double fY;
 	
+	//TODO: perhaps use some properties class
+	static private double gridScaleXInv; 
+	static private double gridScaleYInv; 
+	
+	protected Map<String, Boolean> reactionNamesMap = new HashMap<String, Boolean>();
+	protected Map<String, String> speciesProperties;
+	
+	public void setReactionNamesMap(Map<String, Boolean> map) {
+		this.reactionNamesMap = map;
+	}
+	
+	public Boolean hasReaction(String reactionName) {
+		if(!reactionNamesMap.containsKey(reactionName))
+			return false;
+		Boolean temp = reactionNamesMap.get(reactionName); 
+		return temp;
+	}
+
 	@SuppressWarnings("unchecked")
-	public PhysicalAgent(Context<PhysicalAgent> context, double mass) {
-		this.space = (ContinuousSpace<PhysicalAgent>) context.getProjection("space");;
-		this.grid = (Grid<PhysicalAgent>) context.getProjection("grid");
+	public PhysicalAgent() {
+		
+		// TODO move all this to static init methods in the zoo
+//		Context<Object> context = ContextUtils.getContext((Object)this);
+//		space = (ContinuousSpace<PhysicalAgent>) context.getProjection("space");;
+//		grid = (Grid<PhysicalAgent>) context.getProjection("grid");
+	}
+	
+	public void init() {
+		gridScaleXInv = grid.getDimensions().getWidth() / space.getDimensions().getWidth();
+		gridScaleYInv = grid.getDimensions().getHeight() / space.getDimensions().getHeight();
+	}
+	
+	public void setMass(double mass) {
 		this.mass = mass;
 		this.radius = Math.sqrt(this.mass / Math.PI);
 	}
@@ -35,7 +82,7 @@ public class PhysicalAgent {
 		Context<Object> context = ContextUtils.getContext((Object)this);
 
 		int initialNeighborDistance = 5;
-		GridWithin<Object> query = new GridWithin<Object>(context, this, initialNeighborDistance);
+		GridWithin<Object> query = new GridWithin<Object>(context, this, initialNeighborDistance*gridScaleYInv);
 
 		ArrayList<Object> foundOverlapping = new ArrayList<Object>();
 		
@@ -112,14 +159,14 @@ public class PhysicalAgent {
 		double nextY = myPoint.getY() + (this.fY / this.mass) * coeff;
 		space.moveTo(this, nextX, nextY);
 		myPoint = space.getLocation(this);
-		grid.moveTo(this, (int) myPoint.getX(), (int) myPoint.getY());
+		grid.moveTo(this, (int) (myPoint.getX()*gridScaleXInv), (int) (myPoint.getY()*gridScaleYInv));
 	}
 
 	protected void moveByAngleAndDist(double angle, double dist) {
 		NdPoint myPoint = space.getLocation(this);
 		space.moveByVector(this, dist, angle, 0);
 		myPoint = space.getLocation(this);
-		grid.moveTo(this, (int) myPoint.getX(), (int) myPoint.getY());
+		grid.moveTo(this, (int) (myPoint.getX()*gridScaleXInv), (int) (myPoint.getY()*gridScaleYInv));
 
 	}
 	
@@ -128,5 +175,6 @@ public class PhysicalAgent {
 		
 		return String.valueOf(this.getClass().getSimpleName() + " " + myPoint.getX()) + " " + String.valueOf(myPoint.getY()) + " " + String.valueOf(this.radius);  
 	}
+
 
 }

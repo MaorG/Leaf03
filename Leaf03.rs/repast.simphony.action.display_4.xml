@@ -1,5 +1,5 @@
 <repast.simphony.visualization.engine.CartesianDisplayDescriptor>
-  <name>COD</name>
+  <name>New Display</name>
   <type>2D</type>
   <styles>
     <entry>
@@ -23,7 +23,7 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>-905954452</hashCode>
+    <hashCode>2124108619</hashCode>
   </schedParams>
   <layoutClassName>foo.bar.baz</layoutClassName>
   <layoutProjection>space</layoutProjection>
@@ -42,7 +42,7 @@
     </repast.simphony.scenario.data.ProjectionData>
   </projections>
   <visualizationProperties class="repast.simphony.visualization.UnitSizeLayoutProperties">
-    <unitSize>15.0</unitSize>
+    <unitSize>1.0</unitSize>
   </visualizationProperties>
   <projectionDescriptors>
     <entry>
@@ -59,7 +59,7 @@
               </entry>
               <entry>
                 <string>UNIT_SIZE</string>
-                <float>15.0</float>
+                <float>1.0</float>
               </entry>
               <entry>
                 <string>SHOW</string>
@@ -78,8 +78,8 @@
     <blue>255</blue>
     <alpha>255</alpha>
   </backgroundColor>
-  <valueLayerStyleName>leaf03.CODStyle</valueLayerStyleName>
+  <valueLayerStyleName>leaf03.SurfStyle</valueLayerStyleName>
   <valueLayers>
-    <string>COD</string>
+    <string>surfactant</string>
   </valueLayers>
 </repast.simphony.visualization.engine.CartesianDisplayDescriptor>

@@ -5,5 +5,6 @@
 	<classpathentry exported="true" kind="con" path="GROOVY_SUPPORT"/>
 	<classpathentry exported="true" kind="con" path="GROOVY_DSL_SUPPORT"/>
 	<classpathentry kind="con" path="REPAST_SIMPHONY_SUPPORT"/>
+	<classpathentry kind="lib" path="C:/simulators/RepastSimphony-2.3.1/Maor/utils/expr.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
